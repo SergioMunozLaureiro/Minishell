@@ -23,13 +23,19 @@ gcc -Wall -Wextra minishell.c libparser.a -o minishell -static
 Start the shell:
 
 Bash
+```
 ./minishell
+```
 Usage Examples
+
 Bash
+```
 msh> ls -l
 msh> ls -l | grep minishell | wc -l
 msh> cat < input.txt | sort > output.txt
-Technologies & System Calls
+```
+
+## Technologies & System Calls
 Language: C (ANSI/POSIX)
 
 Core Syscalls: fork, execv, waitpid, pipe, dup2, open, close, chdir, umask, signal
