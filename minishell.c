@@ -110,7 +110,7 @@ int main(void) {
                     if(i==0 && line->redirect_input !=NULL){
                         fd_redir=open(line->redirect_input,O_RDONLY);
                         if(fd_redir<0){
-                            fprintf(stderr,"%s: Error. Descripción del error",line->redirect_input);
+                            fprintf(stderr,"%s: Error. Descripción del error\n",line->redirect_input);
                             exit(1);
                         }
                         dup2(fd_redir,STDIN_FILENO);
