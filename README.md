@@ -19,6 +19,7 @@ The project relies on the provided lexical/syntactic parser library (`parser.h` 
 
 ```bash
 gcc -Wall -Wextra minishell.c libparser.a -o minishell -static
+```
 Start the shell:
 
 Bash
