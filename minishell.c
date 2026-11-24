@@ -18,6 +18,7 @@ int main(void) {
     int i,j,k;
     int hay_error;
     int fd_redir;
+    //LOOP
     while(1){
             
            printf("msh> ");
@@ -25,19 +26,18 @@ int main(void) {
            if( fgets(buf,sizeof(buf),stdin)==NULL){
             break;
             }
-           
-            
-            
+            //USE parser.h
             line = tokenize(buf);
             if (line == NULL) {
                 continue;
                 }
             
+            //NO COMMANDS
             if(line->ncommands == 0) {
                 continue;
                 }
             
-            
+            //INTERN COMMANDS
             if(strcmp("exit",line->commands[0].argv[0])==0){
                 printf("COMANDO INTERNO exit NO IMPLEMENTADO\n");
                 break;
@@ -60,6 +60,7 @@ int main(void) {
                 }
 
             hay_error=0;
+            //COMMAND DO NOT EXIST
             for(i=0; i<line->ncommands ; i++){
                  if(line->commands[i].filename==NULL){
                                 fprintf(stderr,"%s: No se encuentra el mandato\n",line->commands[i].argv[0]);
@@ -70,13 +71,17 @@ int main(void) {
             if(hay_error==1){
                 continue;
             }
+            //DYNAMIC LIST FOR NUMBER OF COMMANDS
             my_pid=(pid_t*) malloc(line->ncommands*sizeof(pid_t));
             if(line->ncommands>1){
+                //DYNAMIC LIST FOR NUMBER OF PIPES PER COMMAND
+                //ONLY ACTIVE WHEN LINE->NCOMMANDS >1
                 pipes=(int*) malloc((line->ncommands-1)*2*sizeof(int));
                 if (pipes == NULL) {
                     perror("pipes");
                     continue;
                     }
+                //OPEN PIPES
                 for(j=0;j<line->ncommands-1;j++){
                 pipe(&pipes[2*j]);// PARES= pipe[2*j] IMPARES= pipe[2*j+1]
                     }
@@ -97,16 +102,18 @@ int main(void) {
                     break;
                     
                     }
-                
+                //SON
                 else if(my_pid[i]==0){
-                    
+                    //MIDDLE COMMAND REDIRECTIONS
                     if(i>0){
                         dup2(pipes[2*(i-1)],STDIN_FILENO);
                         
                     }
+                    
                     if(i<line->ncommands -1){
                         dup2(pipes[2*i+1],STDOUT_FILENO);
                     }
+                    //FIRST COMMAND REDIRECTION
                     if(i==0 && line->redirect_input !=NULL){
                         fd_redir=open(line->redirect_input,O_RDONLY);
                         if(fd_redir<0){
@@ -116,6 +123,7 @@ int main(void) {
                         dup2(fd_redir,STDIN_FILENO);
                         close(fd_redir);
                     }
+                    //LAST COMMAND REDIRECTION
                     if(i==line->ncommands -1 && line->redirect_output !=NULL){
                         fd_redir=open(line->redirect_output, O_WRONLY | O_CREAT | O_TRUNC, 0666);
                         if(fd_redir<0){
@@ -125,34 +133,38 @@ int main(void) {
                         dup2(fd_redir,STDOUT_FILENO);
                         close(fd_redir);
                     }
-                    
+                    //CLOSE ALL PIPES
                     for(k=0;k<2*(line->ncommands- 1);k++){
                         close(pipes[k]);
                     }
-                    
+                    //EXECUTE
                     execv(line->commands[i].filename,line->commands[i].argv);
                     perror("execv");
                     exit(1);
                             
                         }
+                    //COUNT NUMEBR OF HIJOS
                     c_hijos++;
                     }
-            
+            //BACKGROUND
             if(line->background==1){
                 printf("COMANDO EN BACKGROUND NO IMPLEMENTADO\n");
                 } 
-            
+            //FOREGORUND
+            //FATHER
             else{
+                //CLOSE ALL PIPES
                 for(k=0;k<2*(line->ncommands- 1) ;k++){
                         close(pipes[k]);
                     }  
                 for( i=0 ; i<c_hijos ; i++){
 
-                    
+                    //WAIT FOR NUMBER OF HIJOS
                     waitpid(my_pid[i],NULL,0);
                     }
                       
                 }
+            //FREE DYNAMIC LISTS
             free(my_pid); 
             if(line->ncommands >1){
                 free(pipes);  
