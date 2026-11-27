@@ -33,6 +33,7 @@ int main(void) {
     int n_jobs=1;
     tjobs jobs[MAX_JOBS]={0};
     pid_t pid_devuelto;
+    int status;
 
     for(i=0;i<MAX_JOBS;i++){
         jobs[i].activo=0;
@@ -56,7 +57,8 @@ int main(void) {
             //PROMPT
            printf("msh> ");
            fflush(stdout);
-           
+           signal(SIGINT,SIG_IGN);
+           signal(SIGTSTP,SIG_IGN);
            if( fgets(buf,sizeof(buf),stdin)==NULL){
             break;
             }
@@ -188,6 +190,11 @@ int main(void) {
                     }
                 //SON
                 else if(my_pid[i]==0){
+                    if(line->background==0){
+                        signal(SIGINT,SIG_DFL);
+                        signal(SIGTSTP,SIG_DFL);
+                    }
+                    
                     
                     //MIDDLE COMMAND REDIRECTIONS
                     if(i>0){
@@ -280,7 +287,17 @@ int main(void) {
                 for( i=0 ; i<c_hijos ; i++){
 
                     //WAIT FOR NUMBER OF HIJOS
-                    waitpid(my_pid[i],NULL,0);
+
+                    waitpid(my_pid[i],&status,WUNTRACED);
+                    if(WIFSIGNALED(status)){
+                        printf("\n");
+                        break;
+                    }
+                    if(WIFSTOPPED(status) ){
+                        printf("\nGUARDARIA EN JOBS-NO IMPLEMENTADO AÚN");
+                        printf("\n[%d]+  Stopped                 %s\n",my_pid[i], buf);
+                        break;
+                    }
                     }
                       
                 }
